@@ -1,58 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { storeData, getData, removeData } from '../utils/storage'; // Storage işlevlerini import edin
+import DateTimePicker from '@react-native-community/datetimepicker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Simge kütüphanesi
+import { storeData, getData } from '../utils/storage';
 
 export default function HomeScreen() {
-  const [tasks, setTasks] = useState([]); // Görev listesi
-  const [taskInput, setTaskInput] = useState(''); // Yeni görev için input
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState('');
+  const [taskTime, setTaskTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  // AsyncStorage'den görevleri yükle
   useEffect(() => {
     const loadTasks = async () => {
-      const savedTasks = await getData('tasks'); // Görevler "tasks" anahtarında saklanır
+      const savedTasks = await getData('tasks');
       if (savedTasks) {
-        setTasks(JSON.parse(savedTasks)); // AsyncStorage'den JSON'u çöz
+        setTasks(JSON.parse(savedTasks));
       }
     };
     loadTasks();
   }, []);
 
-  // Görev ekleme
   const addTask = async () => {
-    if (taskInput.trim() === '') {
-      Alert.alert('Warning', 'Task cannot be empty!');
+    if (!taskName.trim()) {
+      Alert.alert('Warning', 'Task name is required!');
       return;
     }
 
-    const newTask = { id: Date.now().toString(), name: taskInput };
+    const newTask = {
+      id: Date.now().toString(),
+      name: taskName,
+      time: taskTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      completed: false,
+    };
+
     const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
-    setTaskInput(''); // Input'u temizle
-    await storeData('tasks', JSON.stringify(updatedTasks)); // AsyncStorage'ye kaydet
+    setTaskName('');
+    await storeData('tasks', JSON.stringify(updatedTasks));
     Alert.alert('Success', 'Task added successfully!');
   };
 
-  // Görev silme
   const deleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     setTasks(updatedTasks);
-    await storeData('tasks', JSON.stringify(updatedTasks)); // Güncellenmiş görevleri kaydet
+    await storeData('tasks', JSON.stringify(updatedTasks));
     Alert.alert('Success', 'Task deleted successfully!');
   };
 
-  // Görev listeleme
+  const toggleCompletion = async (id) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+    await storeData('tasks', JSON.stringify(updatedTasks));
+  };
+
   const renderTask = ({ item }) => (
     <View style={styles.taskContainer}>
-      <Text style={styles.taskText}>{item.name}</Text>
-      <TouchableOpacity onPress={() => deleteTask(item.id)}>
-        <Text style={styles.deleteText}>Delete</Text>
-      </TouchableOpacity>
+      <View>
+        <Text style={styles.taskName}>{item.name}</Text>
+        <Text style={styles.taskTime}>Time: {item.time}</Text>
+      </View>
+      <View style={styles.taskActions}>
+        <TouchableOpacity onPress={() => toggleCompletion(item.id)} style={styles.iconButton}>
+          <Icon
+            name={item.completed ? 'check-circle' : 'circle-outline'}
+            size={24}
+            color={item.completed ? '#2ecc71' : '#3498db'}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.iconButton}>
+          <Icon name="delete" size={24} color="#e74c3c" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
+  const onTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setTaskTime(selectedTime);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Your Tasks</Text>
+      <Text style={styles.title}>Daily Reminder</Text>
       <FlatList
         data={tasks}
         renderItem={renderTask}
@@ -62,10 +95,24 @@ export default function HomeScreen() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Enter a task"
-        value={taskInput}
-        onChangeText={setTaskInput}
+        placeholder="Task Name"
+        value={taskName}
+        onChangeText={setTaskName}
       />
+      <TouchableOpacity style={styles.timeButton} onPress={() => setShowTimePicker(true)}>
+        <Text style={styles.timeButtonText}>
+          Select Time: {taskTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+      </TouchableOpacity>
+      {showTimePicker && (
+        <DateTimePicker
+          value={taskTime}
+          mode="time"
+          display="default"
+          is24Hour={true}
+          onChange={onTimeChange}
+        />
+      )}
       <TouchableOpacity style={styles.addButton} onPress={addTask}>
         <Text style={styles.addButtonText}>Add Task</Text>
       </TouchableOpacity>
@@ -91,8 +138,10 @@ const styles = StyleSheet.create({
     shadowRadius: 1.5,
     elevation: 2,
   },
-  taskText: { fontSize: 16, color: '#333' },
-  deleteText: { color: '#e74c3c', fontWeight: 'bold' },
+  taskName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  taskTime: { fontSize: 14, color: '#00796b' },
+  taskActions: { flexDirection: 'row', alignItems: 'center' },
+  iconButton: { marginHorizontal: 5 },
   emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
   input: {
     height: 50,
@@ -103,6 +152,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     marginBottom: 10,
   },
+  timeButton: {
+    height: 50,
+    backgroundColor: '#00796b',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  timeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   addButton: {
     height: 50,
     backgroundColor: '#00796b',
