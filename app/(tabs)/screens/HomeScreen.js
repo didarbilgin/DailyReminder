@@ -229,3 +229,4 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, color: '#fff' },
   cancelText: { color: '#f00', marginTop: 10 },
 });
+
