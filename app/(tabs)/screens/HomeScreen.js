@@ -15,6 +15,7 @@ export default function HomeScreen() {
       const savedTasks = await getData('tasks');
       if (savedTasks) {
         setTasks(JSON.parse(savedTasks));
+
       }
     };
     loadTasks();
@@ -113,6 +114,7 @@ export default function HomeScreen() {
           onChange={onTimeChange}
         />
       )}
+
       <TouchableOpacity style={styles.addButton} onPress={addTask}>
         <Text style={styles.addButtonText}>Add Task</Text>
       </TouchableOpacity>
@@ -152,6 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     marginBottom: 10,
   },
+
   timeButton: {
     height: 50,
     backgroundColor: '#00796b',
@@ -161,12 +164,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   timeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
-  addButton: {
-    height: 50,
-    backgroundColor: '#00796b',
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
 });
+});
+
