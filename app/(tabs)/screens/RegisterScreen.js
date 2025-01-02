@@ -1,37 +1,33 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Button } from 'react-native-paper';
+import { View, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text } from 'react-native-paper';
+import { storeData } from '../utils/storage'; // storage.js'den gerekli fonksiyonu import edin
 
-export default function RegisterScreen() {
-  const [email, setEmail] = useState('');
+export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleRegister = () => {
-    console.log('Email:', email);
-    console.log('Username:', username);
-    console.log('Password:', password);
-    // Kayıt işlemleri burada yapılır
+  const handleRegister = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // Kullanıcı bilgilerini kaydet
+    await storeData(username, password);
+    Alert.alert('Success', 'User registered successfully!');
+    navigation.navigate('Login'); // Login sayfasına yönlendirme
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        mode="outlined"
-        theme={{ colors: { primary: '#00796b', background: '#fff' } }}
-      />
+      <Text style={styles.title}>Register</Text>
       <TextInput
         label="Username"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
         mode="outlined"
-        theme={{ colors: { primary: '#00796b', background: '#fff' } }}
       />
       <TextInput
         label="Password"
@@ -40,44 +36,21 @@ export default function RegisterScreen() {
         style={styles.input}
         secureTextEntry
         mode="outlined"
-        theme={{ colors: { primary: '#00796b', background: '#fff' } }}
       />
-      <Button
-        mode="contained"
-        onPress={handleRegister}
-        style={styles.button}
-        labelStyle={styles.buttonText}
-      >
+      <Button mode="contained" onPress={handleRegister} style={styles.button}>
         Register
       </Button>
+      <Text style={styles.linkText} onPress={() => navigation.navigate('Login')}>
+        Already have an account? Login here
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#e0f7fa',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#00796b',
-    marginBottom: 20,
-  },
-  input: {
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#00796b',
-    marginBottom: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
+  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#e0f7fa' },
+  title: { fontSize: 28, textAlign: 'center', marginBottom: 20, color: '#00796b' },
+  input: { marginBottom: 20 },
+  button: { backgroundColor: '#00796b', marginBottom: 10 },
+  linkText: { textAlign: 'center', color: '#00796b', marginTop: 10 },
 });
