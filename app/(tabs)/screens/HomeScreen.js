@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { storeData, getData } from '../utils/storage'; // Storage fonksiyonları
+import { storeData, getData } from '../utils/storage';
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState([]);
@@ -23,7 +23,6 @@ export default function HomeScreen() {
   const [updatedTitle, setUpdatedTitle] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Görevleri AsyncStorage'dan yükle
   useEffect(() => {
     const loadTasks = async () => {
       const savedTasks = await getData('tasks');
@@ -34,13 +33,11 @@ export default function HomeScreen() {
     loadTasks();
   }, []);
 
-  // Görevleri AsyncStorage'a kaydet
   const saveTasks = async (updatedTasks) => {
     setTasks(updatedTasks);
     await storeData('tasks', JSON.stringify(updatedTasks));
   };
 
-  // Yeni görev ekle
   const handleAddTask = async () => {
     if (!taskName.trim()) {
       Alert.alert('Warning', 'Task name cannot be empty!');
@@ -60,21 +57,25 @@ export default function HomeScreen() {
     Alert.alert('Success', 'Task added successfully!');
   };
 
-  // Görev sil
   const handleDeleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     await saveTasks(updatedTasks);
     Alert.alert('Success', 'Task deleted successfully!');
   };
 
-  // Görev düzenleme modalını aç
+  const toggleCompletion = async (id) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    );
+    await saveTasks(updatedTasks);
+  };
+
   const handleEditTask = (task) => {
     setEditTask(task);
     setUpdatedTitle(task.name);
     setIsModalVisible(true);
   };
 
-  // Görev güncelle
   const handleUpdateTask = async () => {
     if (!updatedTitle.trim()) {
       Alert.alert('Warning', 'Task title cannot be empty!');
@@ -82,16 +83,13 @@ export default function HomeScreen() {
     }
 
     const updatedTasks = tasks.map((task) =>
-      task.id === editTask.id
-        ? { ...task, name: updatedTitle }
-        : task
+      task.id === editTask.id ? { ...task, name: updatedTitle } : task
     );
     await saveTasks(updatedTasks);
     setIsModalVisible(false);
     setEditTask(null);
   };
 
-  // Tarih/Saat seçimi
   const onTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
@@ -99,7 +97,6 @@ export default function HomeScreen() {
     }
   };
 
-  // Görevleri listeleme
   const renderTask = ({ item }) => (
     <View style={styles.taskContainer}>
       <View>
@@ -107,6 +104,13 @@ export default function HomeScreen() {
         <Text style={styles.taskTime}>Time: {item.time}</Text>
       </View>
       <View style={styles.taskActions}>
+        <TouchableOpacity onPress={() => toggleCompletion(item.id)} style={styles.iconButton}>
+          <Icon
+            name={item.completed ? 'check-circle' : 'circle-outline'}
+            size={24}
+            color={item.completed ? '#2ecc71' : '#3498db'}
+          />
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => handleEditTask(item)} style={styles.iconButton}>
           <Icon name="pencil" size={24} color="#007BFF" />
         </TouchableOpacity>
@@ -122,7 +126,7 @@ export default function HomeScreen() {
       <Text style={styles.title}>Daily Reminder</Text>
       <FlatList
         data={tasks}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderTask}
         ListEmptyComponent={<Text style={styles.emptyText}>No tasks available. Add a task!</Text>}
         style={styles.taskList}
@@ -154,17 +158,19 @@ export default function HomeScreen() {
       {/* Düzenleme Modalı */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Edit Task</Text>
-          <TextInput
-            style={styles.input}
-            value={updatedTitle}
-            onChangeText={setUpdatedTitle}
-            placeholder="Enter new task title"
-          />
-          <Button title="Update Task" onPress={handleUpdateTask} />
-          <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Task</Text>
+            <TextInput
+              style={styles.input}
+              value={updatedTitle}
+              onChangeText={setUpdatedTitle}
+              placeholder="Enter new task title"
+            />
+            <Button title="Update Task" onPress={handleUpdateTask} />
+            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -211,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  timeButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  timeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   addButton: {
     height: 50,
     backgroundColor: '#00796b',
@@ -219,14 +225,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  addButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
   },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, color: '#fff' },
-  cancelText: { color: '#f00', marginTop: 10 },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: '100%',
+  },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#00796b' },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+  },
+  modalButton: {
+    backgroundColor: '#00796b',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    marginTop: 10,
+  },
+  modalButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  cancelText: {
+    color: '#ff4d4d',
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
-
