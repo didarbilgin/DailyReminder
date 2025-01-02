@@ -1,29 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Button,
+  Alert,
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Simge kütüphanesi
-import { storeData, getData } from '../utils/storage';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { storeData, getData } from '../utils/storage'; // Storage fonksiyonları
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState('');
   const [taskTime, setTaskTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [editTask, setEditTask] = useState(null);
+  const [updatedTitle, setUpdatedTitle] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // Görevleri AsyncStorage'dan yükle
   useEffect(() => {
     const loadTasks = async () => {
       const savedTasks = await getData('tasks');
       if (savedTasks) {
         setTasks(JSON.parse(savedTasks));
-
       }
     };
     loadTasks();
   }, []);
 
-  const addTask = async () => {
+  // Görevleri AsyncStorage'a kaydet
+  const saveTasks = async (updatedTasks) => {
+    setTasks(updatedTasks);
+    await storeData('tasks', JSON.stringify(updatedTasks));
+  };
+
+  // Yeni görev ekle
+  const handleAddTask = async () => {
     if (!taskName.trim()) {
-      Alert.alert('Warning', 'Task name is required!');
+      Alert.alert('Warning', 'Task name cannot be empty!');
       return;
     }
 
@@ -35,48 +55,43 @@ export default function HomeScreen() {
     };
 
     const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
+    await saveTasks(updatedTasks);
     setTaskName('');
-    await storeData('tasks', JSON.stringify(updatedTasks));
     Alert.alert('Success', 'Task added successfully!');
   };
 
-  const deleteTask = async (id) => {
+  // Görev sil
+  const handleDeleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
-    setTasks(updatedTasks);
-    await storeData('tasks', JSON.stringify(updatedTasks));
+    await saveTasks(updatedTasks);
     Alert.alert('Success', 'Task deleted successfully!');
   };
 
-  const toggleCompletion = async (id) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    await storeData('tasks', JSON.stringify(updatedTasks));
+  // Görev düzenleme modalını aç
+  const handleEditTask = (task) => {
+    setEditTask(task);
+    setUpdatedTitle(task.name);
+    setIsModalVisible(true);
   };
 
-  const renderTask = ({ item }) => (
-    <View style={styles.taskContainer}>
-      <View>
-        <Text style={styles.taskName}>{item.name}</Text>
-        <Text style={styles.taskTime}>Time: {item.time}</Text>
-      </View>
-      <View style={styles.taskActions}>
-        <TouchableOpacity onPress={() => toggleCompletion(item.id)} style={styles.iconButton}>
-          <Icon
-            name={item.completed ? 'check-circle' : 'circle-outline'}
-            size={24}
-            color={item.completed ? '#2ecc71' : '#3498db'}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.iconButton}>
-          <Icon name="delete" size={24} color="#e74c3c" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  // Görev güncelle
+  const handleUpdateTask = async () => {
+    if (!updatedTitle.trim()) {
+      Alert.alert('Warning', 'Task title cannot be empty!');
+      return;
+    }
 
+    const updatedTasks = tasks.map((task) =>
+      task.id === editTask.id
+        ? { ...task, name: updatedTitle }
+        : task
+    );
+    await saveTasks(updatedTasks);
+    setIsModalVisible(false);
+    setEditTask(null);
+  };
+
+  // Tarih/Saat seçimi
   const onTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
@@ -84,13 +99,31 @@ export default function HomeScreen() {
     }
   };
 
+  // Görevleri listeleme
+  const renderTask = ({ item }) => (
+    <View style={styles.taskContainer}>
+      <View>
+        <Text style={styles.taskName}>{item.name}</Text>
+        <Text style={styles.taskTime}>Time: {item.time}</Text>
+      </View>
+      <View style={styles.taskActions}>
+        <TouchableOpacity onPress={() => handleEditTask(item)} style={styles.iconButton}>
+          <Icon name="pencil" size={24} color="#007BFF" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDeleteTask(item.id)} style={styles.iconButton}>
+          <Icon name="delete" size={24} color="#e74c3c" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Reminder</Text>
       <FlatList
         data={tasks}
-        renderItem={renderTask}
         keyExtractor={(item) => item.id}
+        renderItem={renderTask}
         ListEmptyComponent={<Text style={styles.emptyText}>No tasks available. Add a task!</Text>}
         style={styles.taskList}
       />
@@ -114,10 +147,26 @@ export default function HomeScreen() {
           onChange={onTimeChange}
         />
       )}
-
-      <TouchableOpacity style={styles.addButton} onPress={addTask}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
         <Text style={styles.addButtonText}>Add Task</Text>
       </TouchableOpacity>
+
+      {/* Düzenleme Modalı */}
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Edit Task</Text>
+          <TextInput
+            style={styles.input}
+            value={updatedTitle}
+            onChangeText={setUpdatedTitle}
+            placeholder="Enter new task title"
+          />
+          <Button title="Update Task" onPress={handleUpdateTask} />
+          <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -147,14 +196,13 @@ const styles = StyleSheet.create({
   emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
   input: {
     height: 50,
-    borderColor: '#00796b',
+    borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
     marginBottom: 10,
   },
-
   timeButton: {
     height: 50,
     backgroundColor: '#00796b',
@@ -163,7 +211,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  timeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  timeButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  addButton: {
+    height: 50,
+    backgroundColor: '#00796b',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, color: '#fff' },
+  cancelText: { color: '#f00', marginTop: 10 },
 });
-});
-
