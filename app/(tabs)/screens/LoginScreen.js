@@ -1,81 +1,54 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button } from 'react-native-paper';
+import { View, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text } from 'react-native-paper';
+import { getData } from '../utils/storage'; // storage.js'den gerekli fonksiyonu import edin
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    console.log('Username:', username);
-    console.log('Password:', password);
-    // Giriş işlemleri burada yapılır
+  const handleLogin = async () => {
+    const storedPassword = await getData(username); // AsyncStorage'den şifreyi al
+    if (storedPassword === password) {
+      Alert.alert('Success', `Welcome, ${username}!`);
+      navigation.navigate('Home'); // Ana sayfaya yönlendirme
+    } else {
+      Alert.alert('Error', 'Invalid username or password.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back!</Text>
+      <Text style={styles.title}>Login</Text>
       <TextInput
         label="Username"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
         mode="outlined"
-        theme={{ colors: { primary: '#00796b', background: '#fff' } }}
       />
       <TextInput
         label="Password"
         value={password}
         onChangeText={setPassword}
         style={styles.input}
-        mode="outlined"
         secureTextEntry
-        theme={{ colors: { primary: '#00796b', background: '#fff' } }}
+        mode="outlined"
       />
-      <Button
-        mode="contained"
-        onPress={handleLogin}
-        style={styles.button}
-        labelStyle={styles.buttonText}
-      >
+      <Button mode="contained" onPress={handleLogin} style={styles.button}>
         Login
       </Button>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Don't have an account? Sign Up</Text>
-      </TouchableOpacity>
+      <Text style={styles.linkText} onPress={() => navigation.navigate('Register')}>
+        Don't have an account? Register here
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#e0f7fa',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#00796b',
-    marginBottom: 20,
-  },
-  input: {
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#00796b',
-    marginBottom: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  link: {
-    textAlign: 'center',
-    color: '#00796b',
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#e0f7fa' },
+  title: { fontSize: 28, textAlign: 'center', marginBottom: 20, color: '#00796b' },
+  input: { marginBottom: 20 },
+  button: { backgroundColor: '#00796b', marginBottom: 10 },
+  linkText: { textAlign: 'center', color: '#00796b', marginTop: 10 },
 });
