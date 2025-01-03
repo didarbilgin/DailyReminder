@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Simge kütüphanesi
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { storeData, getData } from '../utils/storage';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState([]);
@@ -37,8 +46,32 @@ export default function HomeScreen() {
     setTasks(updatedTasks);
     setTaskName('');
     await storeData('tasks', JSON.stringify(updatedTasks));
+
+    scheduleNotification(newTask.name, taskTime);
     Alert.alert('Success', 'Task added successfully!');
   };
+
+  const scheduleNotification = async (taskName, taskTime) => {
+    const currentTime = new Date().getTime();
+    const selectedTime = taskTime.getTime();
+    const delayInSeconds = Math.floor((selectedTime - currentTime) / 1000);
+
+    if (delayInSeconds > 0) {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: 'Task Reminder!',
+                body: `Reminder: Your task "${taskName}" is coming up!`,
+            },
+            trigger: {
+                seconds: delayInSeconds,
+            },
+        });
+        console.log(`Notification scheduled in ${delayInSeconds} seconds.`);
+    } else {
+        console.log("Selected time is in the past.");
+        Alert.alert("Warning", "You can't schedule a task in the past!");
+    }
+};
 
   const deleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
