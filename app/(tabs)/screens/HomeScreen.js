@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  Button,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { storeData, getData } from '../utils/storage';
+import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
-import { storeData, getData } from '../utils/storage';
 import { configureNotifications, scheduleNotification, scheduleLocationNotification } from '../utils/NotificationService';
 import { registerBackgroundTask } from '../utils/BackgroundTaskService';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState([]);
@@ -72,6 +72,7 @@ export default function HomeScreen() {
     }
 };
 
+
   useEffect(() => {
     configureNotifications();
     registerBackgroundTask();
@@ -83,6 +84,27 @@ export default function HomeScreen() {
     };
     loadTasks();
 
+
+  const addTask = async () => {
+    if (!taskName.trim()) {
+      Alert.alert('Warning', 'Task name is required!');
+      return;
+    }
+
+    const newTask = {
+      id: Date.now().toString(),
+      name: taskName,
+      time: taskTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      completed: false,
+    };
+
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    setTaskName('');
+    await storeData('tasks', JSON.stringify(updatedTasks));
+
+    scheduleNotification(newTask.name, taskTime);
+    Alert.alert('Success', 'Task added successfully!');
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -109,6 +131,34 @@ export default function HomeScreen() {
             Alert.alert('Uyarı', 'Görev adı boş olamaz.');
             return;
         }
+
+
+  const scheduleNotification = async (taskName, taskTime) => {
+    const currentTime = new Date().getTime();
+    const selectedTime = taskTime.getTime();
+    const delayInSeconds = Math.floor((selectedTime - currentTime) / 1000);
+
+    if (delayInSeconds > 0) {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: 'Task Reminder!',
+                body: `Reminder: Your task "${taskName}" is coming up!`,
+            },
+            trigger: {
+                seconds: delayInSeconds,
+            },
+        });
+        console.log(`Notification scheduled in ${delayInSeconds} seconds.`);
+    } else {
+        console.log("Selected time is in the past.");
+        Alert.alert("Warning", "You can't schedule a task in the past!");
+    }
+};
+
+  const deleteTask = async (id) => {
+    const updatedTasks = tasks.filter((task) => task.id !== id);
+    setTasks(updatedTasks);
+    await storeData('tasks', JSON.stringify(updatedTasks));
 
         const newTask = {
             id: Date.now().toString(),
@@ -148,6 +198,7 @@ export default function HomeScreen() {
   const handleDeleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     await saveTasks(updatedTasks);
+
     Alert.alert('Success', 'Task deleted successfully!');
   };
 
@@ -155,6 +206,11 @@ export default function HomeScreen() {
     const updatedTasks = tasks.map((task) =>
       task.id === id ? { ...task, completed: !task.completed } : task
     );
+
+    setTasks(updatedTasks);
+    await storeData('tasks', JSON.stringify(updatedTasks));
+  };
+
     await saveTasks(updatedTasks);
   };
 
@@ -196,11 +252,13 @@ export default function HomeScreen() {
     setIsLocationModalVisible(false);
 };
 
+
   const renderTask = ({ item }) => (
     <View style={styles.taskContainer}>
       <View>
         <Text style={styles.taskName}>{item.name}</Text>
         <Text style={styles.taskTime}>Time: {item.time}</Text>
+
         {item.location && <Text style={styles.taskTime}>Location: {item.location}</Text>}
       </View>
       <View style={styles.taskActions}>
@@ -211,6 +269,9 @@ export default function HomeScreen() {
             color={item.completed ? '#2ecc71' : '#3498db'}
           />
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.iconButton}>
+
         <TouchableOpacity onPress={() => handleEditTask(item)} style={styles.iconButton}>
           <Icon name="pencil" size={24} color="#007BFF" />
         </TouchableOpacity>
@@ -220,6 +281,13 @@ export default function HomeScreen() {
       </View>
     </View>
   );
+
+  const onTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setTaskTime(selectedTime);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -237,6 +305,7 @@ export default function HomeScreen() {
         value={taskName}
         onChangeText={setTaskName}
       />
+
     <TouchableOpacity
     style={styles.locationButton}
     onPress={() => setIsLocationModalVisible(true)}
@@ -263,7 +332,10 @@ export default function HomeScreen() {
           onChange={onTimeChange}
         />
       )}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+
+      <TouchableOpacity style={styles.addButton} onPress={addTask}>
+
+
         <Text style={styles.addButtonText}>Add Task</Text>
       </TouchableOpacity>
 
@@ -345,6 +417,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+
+  timeButton: {
+    height: 50,
+    backgroundColor: '#00796b',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
   timeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   addButton: {
     height: 50,
@@ -354,6 +436,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
+
+});
+
   modalContent: {
     backgroundColor: '#ffffff',
     padding: 20,
@@ -411,3 +496,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   }
 });
+
