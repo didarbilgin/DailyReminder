@@ -19,30 +19,49 @@
     "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/datetimepicker": "^8.2.0",
+
+    "@react-native-community/push-notification-ios": "^1.11.0",
     "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+
     "expo": "~52.0.23",
+
+    "axios": "^1.7.9",
+    
+
     "expo-blur": "~14.0.1",
     "expo-haptics": "~14.0.0",
-    "expo-notifications": "^0.29.11",
+
+    "expo-linking": "~7.0.3",
+    "expo-location": "~18.0.4",
+    "expo-notifications": "~0.29.11",
     "expo-router": "~4.0.15",
     "expo-splash-screen": "^0.29.18",
     "expo-sqlite": "^15.0.5",
     "expo-status-bar": "~2.0.0",
     "expo-symbols": "~0.2.0",
     "expo-system-ui": "~4.0.6",
-    "expo-web-browser": "^14.0.1",
+
+    "expo-task-manager": "~12.0.3",
+    "expo-web-browser": "~14.0.1",
+
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.5",
     "react-native-background-actions": "^4.0.1",
+
     "react-native-background-timer": "^2.4.1",
     "react-native-ble-manager": "^12.1.2",
     "react-native-ble-plx": "^3.2.1",
     "react-native-bluetooth-serial": "^1.0.0-rc1",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-notifications": "^5.1.0",
+
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-map-clustering": "^3.4.2",
+    "react-native-maps": "1.18.0",
+
     "react-native-paper": "^5.12.5",
     "react-native-push-notification": "^8.1.1",
     "react-native-reanimated": "~3.16.1",
