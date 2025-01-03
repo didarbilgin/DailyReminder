@@ -5,6 +5,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { storeData, getData } from '../utils/storage';
 import * as Notifications from 'expo-notifications';
 import * as Network from 'expo-network';
+import Constants from 'expo-constants';
+
+const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
@@ -19,6 +22,31 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
+
+const suggestTask = async () => {
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/completions',
+      {
+        model: 'text-davinci-003',
+        prompt: "Günlük tekrar eden görevler öner: (Örnek: Su içmek, Egzersiz yapmak, Kitap okumak)",
+        max_tokens: 50
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const suggestion = response.data.choices[0].text.trim();
+    Alert.alert('AI Task Suggestion', suggestion);
+  } catch (error) {
+    console.error('Error fetching task suggestion:', error);
+    Alert.alert('Error', 'Failed to fetch task suggestions.');
+  }
+};
 
 
 export default function HomeScreen() {
@@ -81,8 +109,10 @@ export default function HomeScreen() {
 
 
   useEffect(() => {
+
     configureNotifications();
     registerBackgroundTask();
+
     const loadTasks = async () => {
       const savedTasks = await getData('tasks');
       if (savedTasks) {
@@ -94,7 +124,6 @@ export default function HomeScreen() {
     checkWifiConnection();
   }, []);
 
-  // WiFi bağlantısını kontrol eden fonksiyon
   const checkWifiConnection = async () => {
     try {
       const networkState = await Network.getNetworkStateAsync();
@@ -311,7 +340,6 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Daily Reminder</Text>
 
-      {/* WiFi Bağlantı Durumu */}
       <Text style={styles.wifiStatus}>
         {wifiConnected ? '✅ WiFi Connected' : '❌ No WiFi Connection'}
       </Text>
@@ -323,12 +351,15 @@ export default function HomeScreen() {
         ListEmptyComponent={<Text style={styles.emptyText}>No tasks available. Add a task!</Text>}
         style={styles.taskList}
       />
+      
+      {/* Task Name Input */}
       <TextInput
         style={styles.input}
         placeholder="Task Name"
         value={taskName}
         onChangeText={setTaskName}
       />
+
 
     <TouchableOpacity
     style={styles.locationButton}
@@ -357,11 +388,17 @@ export default function HomeScreen() {
         />
       )}
 
+
       <TouchableOpacity style={styles.addButton} onPress={addTask}>
 
 
         <Text style={styles.addButtonText}>Add Task</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.aiButton} onPress={suggestTask}>
+        <Text style={styles.addButtonText}>Get AI Task Suggestion</Text>
+      </TouchableOpacity>
+
 
       {/* Konum Seçim Haritası */}
       <Modal visible={isLocationModalVisible} animationType="slide">
@@ -462,6 +499,10 @@ const styles = StyleSheet.create({
   },
   addButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
 
+  aiButton : {
+    height: 50,
+
+
 });
 
 
@@ -488,10 +529,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   modalButton: {
+
     backgroundColor: '#00796b',
     borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
+
+    marginTop: 10,
+  },
+  aiButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold',alignItems: 'center'},
+});
+
     padding: 10,
     marginTop: 10,
   },
