@@ -17,7 +17,7 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 // React Native Push Notification importları
-import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage
+twimport com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage
 import com.dieam.reactnativepushnotification.modules.RNPushNotificationHelper
 
 class MainApplication : Application(), ReactApplication {

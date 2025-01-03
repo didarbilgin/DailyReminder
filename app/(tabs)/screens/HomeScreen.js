@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { storeData, getData } from '../utils/storage';
 import * as Notifications from 'expo-notifications';
+import * as Network from 'expo-network';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -18,6 +19,7 @@ export default function HomeScreen() {
   const [taskName, setTaskName] = useState('');
   const [taskTime, setTaskTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [wifiConnected, setWifiConnected] = useState(false);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -27,7 +29,18 @@ export default function HomeScreen() {
       }
     };
     loadTasks();
+    checkWifiConnection();
   }, []);
+
+  // WiFi bağlantısını kontrol eden fonksiyon
+  const checkWifiConnection = async () => {
+    try {
+      const networkState = await Network.getNetworkStateAsync();
+      setWifiConnected(networkState.isInternetReachable);
+    } catch (error) {
+      console.error('Error checking WiFi connection:', error);
+    }
+  };
 
   const addTask = async () => {
     if (!taskName.trim()) {
@@ -57,27 +70,24 @@ export default function HomeScreen() {
     const delayInSeconds = Math.floor((selectedTime - currentTime) / 1000);
 
     if (delayInSeconds > 0) {
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Task Reminder!',
-                body: `Reminder: Your task "${taskName}" is coming up!`,
-            },
-            trigger: {
-                seconds: delayInSeconds,
-            },
-        });
-        console.log(`Notification scheduled in ${delayInSeconds} seconds.`);
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Task Reminder!',
+          body: `Reminder: Your task "${taskName}" is coming up!`,
+        },
+        trigger: {
+          seconds: delayInSeconds,
+        },
+      });
     } else {
-        console.log("Selected time is in the past.");
-        Alert.alert("Warning", "You can't schedule a task in the past!");
+      Alert.alert('Warning', "You can't schedule a task in the past!");
     }
-};
+  };
 
   const deleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     setTasks(updatedTasks);
     await storeData('tasks', JSON.stringify(updatedTasks));
-    Alert.alert('Success', 'Task deleted successfully!');
   };
 
   const toggleCompletion = async (id) => {
@@ -119,6 +129,12 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Reminder</Text>
+
+      {/* WiFi Bağlantı Durumu */}
+      <Text style={styles.wifiStatus}>
+        {wifiConnected ? '✅ WiFi Connected' : '❌ No WiFi Connection'}
+      </Text>
+
       <FlatList
         data={tasks}
         renderItem={renderTask}
@@ -176,6 +192,7 @@ const styles = StyleSheet.create({
   taskActions: { flexDirection: 'row', alignItems: 'center' },
   iconButton: { marginHorizontal: 5 },
   emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
+  wifiStatus: { textAlign: 'center', fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   input: {
     height: 50,
     borderColor: '#00796b',
