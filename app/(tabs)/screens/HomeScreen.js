@@ -4,10 +4,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { storeData, getData } from '../utils/storage';
 import * as Notifications from 'expo-notifications';
+import * as Network from 'expo-network';
+
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
 import { configureNotifications, scheduleNotification, scheduleLocationNotification } from '../utils/NotificationService';
 import { registerBackgroundTask } from '../utils/BackgroundTaskService';
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -23,6 +26,9 @@ export default function HomeScreen() {
   const [taskName, setTaskName] = useState('');
   const [taskTime, setTaskTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const [wifiConnected, setWifiConnected] = useState(false);
+
   const [editTask, setEditTask] = useState(null);
   const [updatedTitle, setUpdatedTitle] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -73,6 +79,7 @@ export default function HomeScreen() {
 };
 
 
+
   useEffect(() => {
     configureNotifications();
     registerBackgroundTask();
@@ -84,6 +91,18 @@ export default function HomeScreen() {
     };
     loadTasks();
 
+    checkWifiConnection();
+  }, []);
+
+  // WiFi bağlantısını kontrol eden fonksiyon
+  const checkWifiConnection = async () => {
+    try {
+      const networkState = await Network.getNetworkStateAsync();
+      setWifiConnected(networkState.isInternetReachable);
+    } catch (error) {
+      console.error('Error checking WiFi connection:', error);
+    }
+  };
 
   const addTask = async () => {
     if (!taskName.trim()) {
@@ -139,21 +158,19 @@ export default function HomeScreen() {
     const delayInSeconds = Math.floor((selectedTime - currentTime) / 1000);
 
     if (delayInSeconds > 0) {
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Task Reminder!',
-                body: `Reminder: Your task "${taskName}" is coming up!`,
-            },
-            trigger: {
-                seconds: delayInSeconds,
-            },
-        });
-        console.log(`Notification scheduled in ${delayInSeconds} seconds.`);
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Task Reminder!',
+          body: `Reminder: Your task "${taskName}" is coming up!`,
+        },
+        trigger: {
+          seconds: delayInSeconds,
+        },
+      });
     } else {
-        console.log("Selected time is in the past.");
-        Alert.alert("Warning", "You can't schedule a task in the past!");
+      Alert.alert('Warning', "You can't schedule a task in the past!");
     }
-};
+  };
 
   const deleteTask = async (id) => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
@@ -200,6 +217,7 @@ export default function HomeScreen() {
     await saveTasks(updatedTasks);
 
     Alert.alert('Success', 'Task deleted successfully!');
+
   };
 
   const toggleCompletion = async (id) => {
@@ -292,6 +310,12 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Reminder</Text>
+
+      {/* WiFi Bağlantı Durumu */}
+      <Text style={styles.wifiStatus}>
+        {wifiConnected ? '✅ WiFi Connected' : '❌ No WiFi Connection'}
+      </Text>
+
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id.toString()}
@@ -400,6 +424,7 @@ const styles = StyleSheet.create({
   taskActions: { flexDirection: 'row', alignItems: 'center' },
   iconButton: { marginHorizontal: 5 },
   emptyText: { textAlign: 'center', color: '#999', marginTop: 20 },
+  wifiStatus: { textAlign: 'center', fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   input: {
     height: 50,
     borderColor: '#ddd',
@@ -436,6 +461,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
+
+});
+
 
 });
 
@@ -496,4 +524,5 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   }
 });
+
 
