@@ -29,7 +29,6 @@
         <array>
           <string>myapp</string>
           <string>com.anonymous.DailyReminder</string>
-          <string>com.googleusercontent.apps.425712924695-oejqjfk9r540m4g8nu45ej8fcc78pdmr</string>
         </array>
       </dict>
     </array>
@@ -46,9 +45,26 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your location</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>We require location permission for location-based reminders.</string>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+      <key>Location</key>
+      <string>We need location permissions for location-based task reminders.</string>
+    </dict>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We require location permission for location-based reminders.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
+    </array>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>fetch</string>
+      <string>remote-notification</string>
+      <string>location</string>
     </array>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
