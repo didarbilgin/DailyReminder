@@ -13,6 +13,8 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { storeData, getData } from '../utils/storage';
+import { configureNotifications, scheduleNotification } from '../utils/NotificationService';
+import { registerBackgroundTask } from '../utils/BackgroundTaskService';
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState([]);
@@ -24,6 +26,8 @@ export default function HomeScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
+    configureNotifications();
+    registerBackgroundTask();
     const loadTasks = async () => {
       const savedTasks = await getData('tasks');
       if (savedTasks) {
@@ -50,6 +54,12 @@ export default function HomeScreen() {
       time: taskTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       completed: false,
     };
+
+    await scheduleNotification(
+      taskName,
+      `Reminder for task: ${taskName}`,
+      taskTime
+    );
 
     const updatedTasks = [...tasks, newTask];
     await saveTasks(updatedTasks);
