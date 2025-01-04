@@ -5,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+//import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import React from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -14,10 +14,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 SplashScreen.preventAutoHideAsync();
 
 // Google Sign-In yapılandırması
-GoogleSignin.configure({
+/*GoogleSignin.configure({
   webClientId: '425712924695-08af004am9lcbfklsq4v3vi4es0mv4fk.apps.googleusercontent.com', // Web Client ID (opsiyonel ama önerilir)
   offlineAccess: true, // Offline erişim gerekiyorsa true
-});
+});*/
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

@@ -10,13 +10,65 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.DailyReminder"
+      "bundleIdentifier": "com.anonymous.DailyReminder",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification",
+          "location"
+        ],
+        "NSLocationWhenInUseUsageDescription": "We require location permission for location-based reminders.",
+        "NSLocationAlwaysUsageDescription": "We require location permission for location-based reminders.",
+        "NSLocationTemporaryUsageDescriptionDictionary": {
+          "Location": "We need location permissions for location-based task reminders."
+        }
+      },
+      "android": {
+        "useNextNotificationsApi": true,
+        "permissions": [
+          "VIBRATE",
+          "WAKE_LOCK",
+          "RECEIVE_BOOT_COMPLETED",
+          "ACCESS_FINE_LOCATION",
+          "ACCESS_BACKGROUND_LOCATION"
+        ],
+        "adaptiveIcon": {
+          "foregroundImage": "./assets/images/adaptive-icon.png",
+          "backgroundColor": "#ffffff"
+        },
+        "package": "com.anonymous.DailyReminder"
+      },
+      "web": {
+        "bundler": "metro",
+        "output": "static",
+        "favicon": "./assets/images/favicon.png"
+      },
+      "plugins": [
+        [
+          "expo-location",
+          {
+            "locationAlwaysAndWhenInUsePermission": "We require location permission for location-based reminders."
+          }
+        ],
+        [
+          "expo-notifications"
+        ],
+        "expo-router",
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 200,
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+          }
+        ]
+      ],
+      "experiments": {
+        "typedRoutes": true
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "package": "com.anonymous.DailyReminder"
     },
     "web": {
@@ -38,6 +90,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "API_KEY": "@env(API_KEY)"    }
+
     }
+
   }
-}
+
