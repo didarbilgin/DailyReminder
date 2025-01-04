@@ -1,52 +1,73 @@
-# Welcome to your Expo app 👋
+# Welcome to DailyReminder 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+DailyReminder is a mobile application built using React Native and Expo that allows users to create time and location-based task reminders. The project supports both iOS and Android platforms.
 
-## Get started
+## Project Setup
 
-1. Install dependencies
+Follow these steps to set up and run the project on your local machine.
 
-   ```bash
-   npm install
-   ```
+ Ensure you have the following tools installed:  
+	•	```Node.js: node -v```  
+   •	```npm: npm -v```  
+	•	```Expo CLI (if needed): npm install -g expo-cli```  
 
-2. Start the app
+## Project Initialization
 
-   ```bash
-    npx expo start
-   ```
+```npx create-expo-app DailyReminder```  
+```cd DailyReminder```  
+```npm install```  
 
-In the output, you'll find options to open the app in a
+## Start the Project
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+```npm start```  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+This will open the Expo Developer Tools in your browser. You can test the app using:  
+•	iOS Simulator  
+ 
+•	Android Emulator  
+ 
+•	Expo Go App on a physical device  
 
-## Get a fresh project
+## iOS Setup (MacOS Only)
 
-When you're ready, run:
+Ensure you have Xcode installed for running the iOS simulator.  
 
-```bash
-npm run reset-project
-```
+1.	Navigate to the ios folder:
+   
+```cd ios```  
+```pod install```  
+```cd ..```  
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Run the app on iOS Simulator:
+```npx react-native run-ios```  
 
-## Learn more
+## Android Setup
 
-To learn more about developing your project with Expo, look at the following resources:
+Ensure you have Android Studio with an emulator configured.  
+	
+ 1.	Start the project:   
+ ```npx react-native start```  
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+ 2.	Run the app on an Android emulator:  
+  ``` npx react-native run-android ```  
 
-## Join the community
+## Development Tools and IDE Configuration
 
-Join our community of developers creating universal apps.
+•	IDE: Visual Studio Code  
+	
+•	Project Structure:  
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+/DailyReminder  
+├── /assets          # Images, icons, and other static files  
+├── /components      # Reusable components  
+├── /screens         # App screens and views  
+├── /utils           # Utility functions and helpers  
+├── App.js           # Main entry file  
+├── package.json     # Project dependencies  
+└── README.md        # Project documentation (this file)  
 
-# DailyReminder
+## Running the App on Physical Devices
+
+You can test the app using the Expo Go app:  
+	1.	Install Expo Go on your device from the App Store or Google Play.  
+	2.	Run npm start and scan the QR code with Expo Go.  
